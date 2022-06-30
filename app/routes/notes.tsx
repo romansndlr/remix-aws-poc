@@ -14,7 +14,14 @@ export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request);
   const noteListItems = await getNoteListItems({ userId });
 
-  return json<LoaderData>({ noteListItems });
+  return json<LoaderData>(
+    { noteListItems },
+    {
+      headers: {
+        "Cache-Control": "max-age=60000",
+      },
+    }
+  );
 };
 
 export default function NotesPage() {
