@@ -1,4 +1,8 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import type {
+  ActionFunction,
+  HeadersFunction,
+  LoaderFunction,
+} from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, useCatch, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -17,10 +21,23 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   invariant(params.noteId, "noteId not found");
 
   const note = await getNote({ userId, id: params.noteId });
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 500);
+  });
+
   if (!note) {
     throw new Response("Not Found", { status: 404 });
   }
-  return json<LoaderData>({ note });
+
+  return json<LoaderData>(
+    { note },
+    {
+      headers: {
+        "Cache-Control": "max-age=60000",
+      },
+    }
+  );
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
@@ -30,6 +47,12 @@ export const action: ActionFunction = async ({ request, params }) => {
   await deleteNote({ userId, id: params.noteId });
 
   return redirect("/notes");
+};
+
+export const headers: HeadersFunction = ({ loaderHeaders }) => {
+  return {
+    "Cache-Control": "max-age=60000",
+  };
 };
 
 export default function NoteDetailsPage() {
@@ -43,7 +66,7 @@ export default function NoteDetailsPage() {
       <Form method="post">
         <button
           type="submit"
-          className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"
+          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600 focus:bg-blue-400"
         >
           Delete
         </button>
