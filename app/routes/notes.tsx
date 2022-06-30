@@ -13,6 +13,11 @@ type LoaderData = {
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request);
   const noteListItems = await getNoteListItems({ userId });
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 500);
+  });
+
   return json<LoaderData>(
     { noteListItems },
     {
